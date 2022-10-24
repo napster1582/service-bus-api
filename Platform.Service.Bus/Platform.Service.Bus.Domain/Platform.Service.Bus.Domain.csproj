@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Ibang.Platform.Common.Infrastructure" Version="1.0.25.62" />
+    <PackageReference Include="Microsoft.Bot.Schema" Version="4.17.2" />
+    <PackageReference Include="StackExchange.Redis" Version="2.6.70" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Platform.Service.Bus.Common\Platform.Service.Bus.Common.csproj" />
+    <ProjectReference Include="..\Platform.Service.Bus.Infrastructure\Platform.Service.Bus.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

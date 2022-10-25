@@ -25,7 +25,11 @@ namespace Platform.Service.Bus.Api.Extensions
             // Handler Event Inactivity
             services.AddTransient<IHandlerEvent<TransferModel>, InactivityEvent>();
 
+            // Service HttpClient
             services.AddTransient<IHttpSendFactoryService, HttpSendFactory>();
+
+            // Logger Rollbar
+            services.AddTransient<ILoggerService, LoggerService>();
 
         }
     }

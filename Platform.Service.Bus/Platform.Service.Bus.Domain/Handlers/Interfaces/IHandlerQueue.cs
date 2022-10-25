@@ -9,6 +9,6 @@ namespace Platform.Service.Bus.Domain.Handlers.Interfaces
 {
     public interface IHandlerQueue<TModel> where TModel : class
     {
-        public Task<Response> SendMessageScheduleToQueueAsync(TModel transferModel);
+        public Task SendMessageScheduleToQueueAsync(TModel transferModel);
     }
 }

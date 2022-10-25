@@ -29,9 +29,10 @@ namespace Platform.Service.Bus.Api.Controllers
         /// receive a message from a user and send replies
         /// </summary>
         [HttpPost]
-        public virtual async Task<ActionResult<Response>> CreateMesageInactivity([FromBody] TransferModel transferModel)
+        public virtual async Task<ActionResult> CreateMesageInactivity([FromBody] TransferModel transferModel)
         {
-           return  await _handlerQueue.SendMessageScheduleToQueueAsync(transferModel);
+            await _handlerQueue.SendMessageScheduleToQueueAsync(transferModel);
+            return new JsonResult("Ok");
            
         }
 

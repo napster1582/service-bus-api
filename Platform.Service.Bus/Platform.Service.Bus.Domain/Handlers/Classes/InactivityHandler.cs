@@ -34,7 +34,7 @@ namespace Platform.Service.Bus.Domain.Handlers
         } 
         #endregion
 
-        public async Task<Response> SendMessageScheduleToQueueAsync(TransferModel transferModel)
+        public async Task SendMessageScheduleToQueueAsync(TransferModel transferModel)
         {
 
             string lockKey = $"IBANG_LOCK_INACTIVITY_MESSGAGE_{transferModel.Pages.PageId}_{transferModel.User.UserId}";
@@ -44,19 +44,17 @@ namespace Platform.Service.Bus.Domain.Handlers
             short maxLoopCount = 30;
             short count = 0;
 
-            long sequenceNumber = 0;
-
-
             while (count < maxLoopCount && !lockFinished)
             {
                 if (await _cacheService.AcquireLock(lockKey, lockToken, TimeSpan.FromMinutes(2)))
                 {
                     try
                     {
+                        long sequenceNumber = 0;
                         var messageReceiver = _serviceBus.GetMessageReceiver("bot-queue-inactivity");
                         var client = _serviceBus.GetQueueClient("bot-queue-inactivity");
 
-                        Message message = await messageReceiver.PeekAsync();
+                        Message message = await messageReceiver.PeekBySequenceNumberAsync(sequenceNumber);
 
                         if (message != null)
                         {
@@ -100,13 +98,7 @@ namespace Platform.Service.Bus.Domain.Handlers
             if (count == maxLoopCount)
             {
                 _loggerService.Warning($"Error, nunca se libero el lock del redisCache tras {maxLoopCount} intentos y {500 * maxLoopCount} milisegundos, en el método.");
-            }
-       
-           return new Response() { 
-               IsSuccess = sequenceNumber != 0 ? true : false, 
-               Message = sequenceNumber != 0 ? "ScheduleMessage OK" : "ScheduleMessage Failed",
-               Data = sequenceNumber 
-           };
+            }      
 
         }
     }

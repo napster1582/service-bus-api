@@ -40,11 +40,13 @@ namespace Platform.Service.Bus.Domain.Services
             {
                 HttpClient httpClient = _httpClientFactory.CreateClient();
 
-                string serviceBusUri = _configuration.GetSection("IdentityServer").GetSection("Api").GetSection("Bot:Endpoint").Value;
+                string baseUrl = _configuration.GetSection("IdentityServer").GetSection("Api").GetSection("Bot:Endpoint").Value;
 
-                string resourceName = "";
+                string controller = "Messages";
 
-                string path = string.Format("{0}api/v1.0/{1}", serviceBusUri, resourceName);
+                string resourceName = "Inactivity";
+
+                string path = string.Format("{0}api/v1.0/{1}/{2}", baseUrl, controller, resourceName);
 
                 StringContent stringContent = new(JsonConvert.SerializeObject(transferModel), Encoding.UTF8, "application/json");
 

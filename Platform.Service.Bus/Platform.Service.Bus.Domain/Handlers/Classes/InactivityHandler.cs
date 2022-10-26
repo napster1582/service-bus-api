@@ -37,7 +37,8 @@ namespace Platform.Service.Bus.Domain.Handlers
         public async Task SendMessageScheduleToQueueAsync(TransferModel transferModel)
         {
 
-            string lockKey = $"IBANG_LOCK_INACTIVITY_MESSGAGE_{transferModel.Pages.PageId}_{transferModel.User.UserId}";
+            string lockKey = $"IBANG_LOCK_INACTIVITY_MESSAGE_{transferModel.Pages.PageId}_{transferModel.User.UserId}";
+
             string lockToken = Guid.NewGuid().ToString();
 
             bool lockFinished = false;
@@ -50,7 +51,11 @@ namespace Platform.Service.Bus.Domain.Handlers
                 {
                     try
                     {
-                        long sequenceNumber = 0;
+                        string sequenceNumberKey = $"IBANG_SERVICE_BUS_SEQUENCE_NUMBER_{transferModel.Pages.PageId}_{transferModel.User.UserId}";
+
+                        //long sequenceNumber = 0;
+                        long sequenceNumber = _cacheService.Get<long>(sequenceNumberKey);
+
                         var messageReceiver = _serviceBus.GetMessageReceiver("bot-queue-inactivity");
                         var client = _serviceBus.GetQueueClient("bot-queue-inactivity");
 
@@ -58,7 +63,8 @@ namespace Platform.Service.Bus.Domain.Handlers
 
                         if (message != null)
                         {
-                            await client.CancelScheduledMessageAsync(message.SystemProperties.SequenceNumber);
+                            await client.CancelScheduledMessageAsync(sequenceNumber);
+                            _cacheService.Delete(sequenceNumberKey);
                         }
 
                         transferModel.Activity.Text = transferModel.Pages.BlockIdInactivity;
@@ -71,11 +77,13 @@ namespace Platform.Service.Bus.Domain.Handlers
                            DateTimeOffset.Now.AddMinutes((double)transferModel.Pages.InactivityGapInMinutes)
                        );
 
+                        _cacheService.Add(sequenceNumberKey, sequenceNumber.ToString());
+
                         await client.CloseAsync();
                     }
                     catch (Exception ex)
                     {
-                        _loggerService.Critical(ex);
+                        _loggerService.Error(ex);
                     }
                     finally
                     {
@@ -84,7 +92,7 @@ namespace Platform.Service.Bus.Domain.Handlers
                         {
                             _loggerService.Warning($"Error al desbloquear el lock de redisCache {lockKey} con token {lockToken}, en el método");
                         }
-
+                       
                         lockFinished = true;
                     }
                 }

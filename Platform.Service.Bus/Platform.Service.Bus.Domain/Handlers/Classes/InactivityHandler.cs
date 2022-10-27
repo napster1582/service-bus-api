@@ -53,18 +53,29 @@ namespace Platform.Service.Bus.Domain.Handlers
                     {
                         string sequenceNumberKey = $"IBANG_SERVICE_BUS_SEQUENCE_NUMBER_{transferModel.Pages.PageId}_{transferModel.User.UserId}";
 
-                        //long sequenceNumber = 0;
-                        long sequenceNumber = _cacheService.Get<long>(sequenceNumberKey);
+                        string sequenceId = _cacheService.Get<string>(sequenceNumberKey);
+
+                        _cacheService.Delete(sequenceNumberKey);
+
+                        transferModel.Id = Guid.NewGuid();
 
                         var messageReceiver = _serviceBus.GetMessageReceiver("bot-queue-inactivity");
                         var client = _serviceBus.GetQueueClient("bot-queue-inactivity");
 
-                        Message message = await messageReceiver.PeekBySequenceNumberAsync(sequenceNumber);
-
-                        if (message != null)
+                        long sequenceNumber = 0;
+                        if (!String.IsNullOrEmpty(sequenceId))
                         {
-                            await client.CancelScheduledMessageAsync(sequenceNumber);
-                            _cacheService.Delete(sequenceNumberKey);
+                            sequenceNumber = Convert.ToInt64(sequenceId.Split("|")[0]);
+                            //Message message = await messageReceiver.PeekBySequenceNumberAsync(id);          
+                            try
+                            {
+                                await client.CancelScheduledMessageAsync(sequenceNumber);
+                            }
+                            catch (Exception)
+                            {
+
+                            }
+
                         }
 
                         transferModel.Activity.Text = transferModel.Pages.BlockIdInactivity;
@@ -77,7 +88,7 @@ namespace Platform.Service.Bus.Domain.Handlers
                            DateTimeOffset.Now.AddMinutes((double)transferModel.Pages.InactivityGapInMinutes)
                        );
 
-                        _cacheService.Add(sequenceNumberKey, sequenceNumber.ToString());
+                        _cacheService.Add(sequenceNumberKey, String.Format("{0}|{1}", sequenceNumber, transferModel.Id));
 
                         await client.CloseAsync();
                     }

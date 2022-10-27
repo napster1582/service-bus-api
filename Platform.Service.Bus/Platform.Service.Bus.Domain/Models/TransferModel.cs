@@ -23,5 +23,6 @@ namespace Platform.Service.Bus.Domain.Models
         public List<BlocksContract> Blocks { get; set; }
         public LiveChatsContract LiveChat { get; set; }
         public LiveChatTypeContract LiveChatType { get; set; }
+        public Guid Id { get; set; }
     }
 }
